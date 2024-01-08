@@ -17,7 +17,7 @@ const server = http.createServer((req, res) => {
 });
 
 server.listen(3000, () => {
-  console.log("Geranium Log Server v0.1");
+  console.log("Geranium Log Server v0.2");
   console.log("made by c22dev");
   console.log("");
   console.log("This was made for Geranium. Geranium itself is under GPLv3 license. The license also applies to the log server.");
