@@ -12,7 +12,7 @@ const server = http.createServer((req, res) => {
       res.end('SUCCESS');
     });
   } else {
-    res.end('Geranium Log Server v0.1. Output : Invalid request.');
+    res.end('Geranium Log Server v0.2. Output : Invalid request.');
   }
 });
 
