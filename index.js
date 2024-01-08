@@ -8,7 +8,6 @@ const server = http.createServer((req, res) => {
     });
 
     req.on('end', () => {
-      console.log(`${data}`);
       res.end('SUCCESS');
     });
   } else {
@@ -21,6 +20,4 @@ server.listen(3000, () => {
   console.log("made by c22dev");
   console.log("");
   console.log("This was made for Geranium. Geranium itself is under GPLv3 license. The license also applies to the log server.");
-  console.log("");
-  console.log("");
 });
