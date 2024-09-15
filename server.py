@@ -1,45 +1,71 @@
 from flask import Flask, request
 import os
-import random
-import string
+import re
+import time
 
 app = Flask(__name__)
 log_directory = 'log'
-
 if not os.path.exists(log_directory):
     os.makedirs(log_directory)
 
-def generate_random_string(length=16):
-    return ''.join(random.choices(string.ascii_letters + string.digits, k=length))
+def get_current_timestamp():
+    return int(time.time())
+
+def extract_uuid(data):
+    uuid_pattern = r'UUID\s+([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})'
+    match = re.search(uuid_pattern, data)
+    return match.group(1) if match else 'unknown-uuid'
+
+def get_folder_size(folder_path):
+    total_size = 0
+    for dirpath, dirnames, filenames in os.walk(folder_path):
+        for f in filenames:
+            fp = os.path.join(dirpath, f)
+            total_size += os.path.getsize(fp)
+    return total_size
 
 @app.route('/', methods=['POST'])
 def log_server():
     if request.method == 'POST':
         data = request.get_data(as_text=True)
-        print(data)
 
-        uuid_prefix = "UUID "
-        uuid_start = data.find(uuid_prefix) + len(uuid_prefix)
-        uuid_end = data.find("\n", uuid_start)
-        usr_uuid = data[uuid_start:uuid_end].strip() if uuid_start > -1 else 'unknown-uuid'
+        uuid = extract_uuid(data)
+        timestamp = get_current_timestamp()
 
-        log_start = data.find("\n\nLog\n") + 6
-        log_content = data[log_start:].strip()
+        folder_path = os.path.join(log_directory, uuid)
+        if not os.path.exists(folder_path):
+            os.makedirs(folder_path)
 
-        random_filename = generate_random_string()
-        file_name = f"{usr_uuid}_{random_filename}.log"
-        file_path = os.path.join(log_directory, file_name)
+        file_name = f"{timestamp}.log"
+        file_path = os.path.join(folder_path, file_name)
+
+        while get_folder_size(folder_path) > 8 * 1024 * 1024:  # 8 MB
+            oldest_file = min(os.listdir(folder_path), key=lambda f: os.path.getmtime(os.path.join(folder_path, f)))
+            os.remove(os.path.join(folder_path, oldest_file))
 
         with open(file_path, 'w') as log_file:
-            log_file.write(log_content)
+            log_file.write(data.replace('\\n', '\n')[:500 * 1024])  # 500 KB limit
 
         return 'SUCCESS'
     else:
-        return 'Invalid request..? If you know what you are doing contact me at c22dev on Discord.'
+        return 'Invalid request. If you know what you are doing, contact me at c22dev on Discord.'
+
+@app.route('/cleanup', methods=['GET'])
+def cleanup_old_logs():
+    current_time = time.time()
+    deleted_count = 0
+    for root, dirs, files in os.walk(log_directory):
+        for file in files:
+            file_path = os.path.join(root, file)
+            if current_time - os.path.getmtime(file_path) > 15 * 24 * 60 * 60:  # 15 days
+                os.remove(file_path)
+                deleted_count += 1
+        if not os.listdir(root) and root != log_directory:
+            os.rmdir(root)
+    return f'deleted {deleted_count} old log files'
 
 if __name__ == '__main__':
-    print("Geranium Log Server v0.4")
-    print("made by c22dev")
-    print("")
+    print("Geranium Log Server v1.0")
+    print("made by c22dev\n")
     print("This was made for Geranium. Geranium itself is under GPLv3 license. The license also applies to the log server.")
     app.run(port=3000)
