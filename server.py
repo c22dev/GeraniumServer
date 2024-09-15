@@ -1,12 +1,11 @@
 from flask import Flask, request
 import os
-import uuid
 import random
 import string
 
 app = Flask(__name__)
-
 log_directory = 'log'
+
 if not os.path.exists(log_directory):
     os.makedirs(log_directory)
 
@@ -24,13 +23,15 @@ def log_server():
         uuid_end = data.find("\n", uuid_start)
         usr_uuid = data[uuid_start:uuid_end].strip() if uuid_start > -1 else 'unknown-uuid'
 
-        random_filename = generate_random_string()
+        log_start = data.find("\n\nLog\n") + 6
+        log_content = data[log_start:].strip()
 
+        random_filename = generate_random_string()
         file_name = f"{usr_uuid}_{random_filename}.log"
         file_path = os.path.join(log_directory, file_name)
 
         with open(file_path, 'w') as log_file:
-            log_file.write(data.replace('\\n', '\n'))
+            log_file.write(log_content)
 
         return 'SUCCESS'
     else:
