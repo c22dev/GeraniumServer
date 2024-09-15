@@ -8,6 +8,7 @@ const server = http.createServer((req, res) => {
     });
 
     req.on('end', () => {
+      console.log(data);
       res.end('SUCCESS');
     });
   } else {
