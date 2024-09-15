@@ -50,20 +50,6 @@ def log_server():
     else:
         return 'Invalid request. If you know what you are doing, contact me at c22dev on Discord.'
 
-@app.route('/cleanup', methods=['GET'])
-def cleanup_old_logs():
-    current_time = time.time()
-    deleted_count = 0
-    for root, dirs, files in os.walk(log_directory):
-        for file in files:
-            file_path = os.path.join(root, file)
-            if current_time - os.path.getmtime(file_path) > 15 * 24 * 60 * 60:  # 15 days
-                os.remove(file_path)
-                deleted_count += 1
-        if not os.listdir(root) and root != log_directory:
-            os.rmdir(root)
-    return f'deleted {deleted_count} old log files'
-
 if __name__ == '__main__':
     print("Geranium Log Server v1.0")
     print("made by c22dev\n")
