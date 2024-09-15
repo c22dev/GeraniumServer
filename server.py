@@ -6,7 +6,7 @@ app = Flask(__name__)
 def log_server():
     if request.method == 'POST':
         data = request.get_data(as_text=True)
-        print(data)  # Log the POST data
+        print(data)  # logging could be done another way.
         return 'SUCCESS'
     else:
         return 'Geranium Log Server v0.3. Invalid request.'
