@@ -1,6 +1,6 @@
 import os
 import time
-
+# This script is ran every day, so your logs go away
 log_directory = 'log'
 
 def cleanup_old_logs():
